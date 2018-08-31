@@ -7,6 +7,7 @@
   },
   "dependencies": {
     "@google/maps": "^0.5.5",
+    "convert-units": "^2.3.4",
     "cookie-parser": "~1.4.3",
     "debug": "~2.6.9",
     "dotenv": "^6.0.0",
@@ -17,5 +18,8 @@
     "jade": "~1.11.0",
     "mongoose": "^5.2.4",
     "morgan": "~1.9.0"
+  },
+  "devDependencies": {
+    "nodemon": "^1.18.4"
   }
 }

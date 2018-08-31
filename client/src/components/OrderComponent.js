@@ -21,10 +21,10 @@ class PriceComponent extends Component {
     }
 
     render() {
-       
+
         return(
             <div>
-               {this.displayOrderInfo()}
+               {/*{this.displayOrderInfo()}*/}
             </div>
         )
     }
@@ -32,7 +32,7 @@ class PriceComponent extends Component {
 
 function mapStateToProps(state) {
     return {
-        order: state.order.orderInfo
+        order: state.orders.detail
     }
 }
 

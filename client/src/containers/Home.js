@@ -3,7 +3,7 @@ import axios from 'axios';
 import {connect} from 'react-redux';
 import { Redirect } from 'react-router-dom';
 
-import { changeLoginStatus } from '../actions/auth'
+import { loginAction } from '../store/modules/auth'
 import { withRouter } from 'react-router-dom';
 import FormComponent from '../components/FormComponent'
 
@@ -26,7 +26,7 @@ class Home extends Component {
 
 
     render() {
-        
+
         if(!this.props.loggedIn) {
             return <Redirect to="/login" />
         }
@@ -49,7 +49,7 @@ export default connect(
     }),
     dispatch => ({
         changeLoginStatus: () => {
-            dispatch(changeLoginStatus());
+            dispatch(loginAction());
         }
     })
 )(Home);

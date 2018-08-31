@@ -1,15 +1,10 @@
 import React, { Component } from 'react';
 import axios from 'axios';
 import {connect} from 'react-redux';
-import { changeLoginStatus } from '../actions/auth'
+import { loginAction } from '../store/modules/auth'
 import { withRouter } from 'react-router-dom';
-import Button from '@material-ui/core';
 import {
-    BrowserRouter as Router,
-    Route,
     Link,
-    Switch,
-    Redirect
   } from 'react-router-dom';
 
 
@@ -41,7 +36,7 @@ class Header extends Component {
     render() {
         return(
             <div>
-                
+
                 {this.renderAuthButtons()}
             </div>
         )
@@ -56,7 +51,7 @@ export default withRouter(connect(
     }),
     dispatch => ({
         changeLoginStatus: () => {
-            dispatch(changeLoginStatus());
+            dispatch(loginAction());
         }
     })
 )(Header));

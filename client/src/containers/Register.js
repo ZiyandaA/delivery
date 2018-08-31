@@ -6,7 +6,7 @@ import MenuItem from '@material-ui/core/MenuItem';
 import FormControl from '@material-ui/core/FormControl';
 import { withRouter } from 'react-router-dom';
 import {connect} from 'react-redux';
-import { changeLoginStatus } from '../actions/auth'
+import { loginAction } from '../store/modules/auth'
 import axios from 'axios';
 import AuthComponent from '../components/Auth';
 
@@ -18,7 +18,7 @@ class Register extends Component {
             password: '',
             open: false,
             successMessage: ""
-        }
+        };
         this.handleChange = this.handleChange.bind(this);
         this.handleSubmit = this.handleSubmit.bind(this);
     }
@@ -43,15 +43,15 @@ class Register extends Component {
         2. Else, display "Login"
     */
     handleSubmit(authMode) {
-        console.log(authMode)
-        let url = "http://localhost:3001/users/"
+        console.log(authMode);
+        let url = "http://localhost:3001/users/";
         if(authMode === "login") {
             url += "signin"
         }else if(authMode === "register") {
             url += "signup"
         }
         let {name, password} = this.state;
-    
+
         axios.post(url, {
             name,
             password,
@@ -60,7 +60,8 @@ class Register extends Component {
                 this.props.changeLoginStatus();
             })
             .catch(err => {
-                alert(err.response.data.message);
+                console.log(err.response);
+                // alert(err.response.data.message);
             })
     }
 
@@ -81,7 +82,7 @@ class Register extends Component {
         }
 
         return(
-            <AuthComponent 
+            <AuthComponent
                 name={name}
                 mode={authMode}
                 password={password}
@@ -89,7 +90,7 @@ class Register extends Component {
                 handleSubmit={this.handleSubmit}
                 label={this.props.label}
                 successMessage={this.state.successMessage}
-            
+
             />
         )
     }
@@ -102,7 +103,7 @@ export default withRouter(connect(
     }),
     dispatch => ({
         changeLoginStatus: () => {
-            dispatch(changeLoginStatus());
+            dispatch(loginAction());
         }
     })
 )(Register));

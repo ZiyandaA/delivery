@@ -7,4 +7,4 @@ module.exports = {
         additional_fees: [15, 25, 30, 40, 12, 40]
     },
     pricePerMile: 3
-}
+};

@@ -1,24 +1,20 @@
 import React, { Component } from 'react';
 import {connect} from 'react-redux';
-import axios from 'axios';
-import * as actions from '../constants/actions';
 import { withRouter } from 'react-router-dom';
 
-import {TextField} from '@material-ui/core'
-
-import {createOrder} from '../actions/order';
+import {createOrderAction} from '../store/modules/orders';
 
 import moment from 'moment'
 
 
 
-const mainBGColor = '#024fa2'
+const mainBGColor = '#024fa2';
 
 const StoreLocation = ({background, name, address, onSelect, selected}) => {
     return <div
         onClick={() => onSelect(address)}
         style={{
-            
+
             display: 'inline-block',
             width: 200,
             marginRight: 10,
@@ -32,14 +28,14 @@ const StoreLocation = ({background, name, address, onSelect, selected}) => {
                 color: 'white',
                 fontSize: 18,
             }}
-            
+
         >{name}</div>
         <div
             style={{
                 backgroundImage: `url(${background})`,
                 backgroundSize: 'cover',
                 color: 'red',
-                padding: '20px 10px', 
+                padding: '20px 10px',
                 fontSize: 20,
 
             }}
@@ -53,7 +49,7 @@ const FormItem = ({name, onChangeOption, onChange, label, index, options =[], fo
     const { quantity, type } = formData[name];
     // console.log(quantity);
     return (<div>
-        <div 
+        <div
             style={{
                 display: 'inline-block',
                 width: '49%',
@@ -74,7 +70,7 @@ const FormItem = ({name, onChangeOption, onChange, label, index, options =[], fo
         >
             {/* <option disabled selected value="default">Select a {label}</option> */}
             {options.map(({label, value}, i) => <option value={value} selected={value === type}>{label}</option>)}
-            
+
         </select>
         <input
             type={'number'}
@@ -170,13 +166,13 @@ const formItemProps = [
                 label: "Waiting time per hr - $40"
             },
         ]
-    },          
+    },
 ]
 
 class FormComponent extends Component {
     formData = {
         service: "delivery",
-        name: "John Smith ",
+        customer_name: "John Smith ",
         notes: "",
         customer_address: "370 19th Street Brookly NY 11215",
         our_address: "50 West 17th Street New York 10011",
@@ -197,13 +193,14 @@ class FormComponent extends Component {
             quantity: 0
         },
         date_time: "08/31/2018"
-    }
+    };
+
     constructor(props) {
         super(props);
 
         this.state = {
             ...this.formData,
-        }
+        };
         this.handleChange = this.handleChange.bind(this);
         this.handleChangeOption = this.handleChangeOption.bind(this);
         this.handleChangeQuantity = this.handleChangeQuantity.bind(this);
@@ -211,7 +208,7 @@ class FormComponent extends Component {
     }
 
 
-    submit(ev) {
+    async submit(ev) {
         const {
             service,
             name,
@@ -223,10 +220,10 @@ class FormComponent extends Component {
             Vflats,
             additional,
             date_time,
-        } = this.state
+        } = this.state;
 
-        ev.preventDefault()
-        
+        ev.preventDefault();
+
         const formData = {
             service,
             name,
@@ -239,30 +236,9 @@ class FormComponent extends Component {
             additional,
             date_time,
         };
-        console.log("FormComponent.submit(): formdata=", formData)
-        //this.props.createOrder(formData)
-            // .then(() => {
-            //     this.props.history.push("/order");
-            // })
-        axios.post("/orders", {...formData})
-            .then(data => {
-                const orderInfo = data.data;
-
-                console.log("FormComponent.sumbit: returned data = ", data)
-            })
-            .catch(err => {
-                //do something with error. Show it or something
-                console.log("FormComponent.sumbit: returned error = ", err)
-            })
-
-        
+        const order = await this.props.createOrder(formData);
+        this.props.history.push(`/orders/${order._id}`);
     }
-
-    /*
-    1. Pending request
-    2. a) Success
-        b) Fail
-    */
 
     handleChange(event) {
         this.setState({
@@ -277,8 +253,6 @@ class FormComponent extends Component {
     }
 
     handleChangeQuantity(e) {
-        console.log("FormComponent: handleChangeQuantity: ",
-            "name=", e.target.name, ", value=", e.target.value)
         const quantity = parseInt(e.target.value, 10) ? parseInt(e.target.value, 10) : 0;
         this.setState({
             [e.target.name]: {...this.state[e.target.name], quantity }
@@ -293,16 +267,20 @@ class FormComponent extends Component {
 
     render() {
         const {
-            name, notes, cases, Vflats, bins, date_time, service,
+            customer_name, notes, cases, Vflats, bins, date_time, service,
             our_address,
-            customer_address 
+            customer_address
         } = this.state;
 
-        const minDateStr = moment().format('YYYY-MM-DD')
+        const minDateStr = moment().format('YYYY-MM-DD');
         return(
-                <form onSubmit={this.submit} style={{background: 'white', padding: 15,marginTop: 10}}>
+                <form
+                    onSubmit={this.submit}
+                    style={{
+                        background: 'white', padding: 15,marginTop: 10
+                    }}
+                >
                     <img src='/logo2.jpg' style={{width: '100%'}}/>
-
                     <div>
                         <div
                             style={{
@@ -319,11 +297,11 @@ class FormComponent extends Component {
                             textAlign: 'center',
                             paddingBottom: 15,
                         }}>
-                        <select 
+                        <select
                             style={{
                                 display: 'inline-block',
-                            }} 
-                            name={'service'} 
+                            }}
+                            name={'service'}
                             onChange={this.handleChange}
                             required
                         >
@@ -345,11 +323,11 @@ class FormComponent extends Component {
                         <p>
                             <input
                                 type="text"
-                                defaultValue={name} 
-                                //value={name} 
-                                size='50' 
-                                name='name' 
-                                onChange={this.handleChange} 
+                                defaultValue={customer_name}
+                                //value={name}
+                                size='50'
+                                name='customer_name'
+                                onChange={this.handleChange}
                                 required
                             />
                         </p>
@@ -364,7 +342,7 @@ class FormComponent extends Component {
                         >
                             Select Location
                         </div>
-                        
+
                         <div style={{
                             padding: '15px 0'
                         }}>
@@ -396,10 +374,10 @@ class FormComponent extends Component {
                                     width: 300.
                                 }}
                                 type="text"
-                                defaultValue={customer_address} 
+                                defaultValue={customer_address}
                                 //value={customer_address}
-                                name='customer_address' 
-                                onChange={this.handleChange} 
+                                name='customer_address'
+                                onChange={this.handleChange}
                                 required
                             />
                         </div>
@@ -428,7 +406,7 @@ class FormComponent extends Component {
                         >
                             Items
                         </div>
-                        
+
                         <div
                             style={{
                                 display: 'inline-block',
@@ -455,13 +433,13 @@ class FormComponent extends Component {
                         />
                     })}
 
-                
+
                     <input
                         type="date"
                         name="date_time"
                         //value={date_time}
                         defaultValue={date_time}
-                        onChange={this.handleChange} 
+                        onChange={this.handleChange}
                         min={minDateStr}
                         required
                     />
@@ -474,8 +452,8 @@ class FormComponent extends Component {
                     <button type="submit" style={{fontSize: 20}}>Submit</button>
                 </form>
 
-                
-            
+
+
         )
     }
 }
@@ -486,8 +464,8 @@ function mapStateToProps(state) {
 
 function mapDispatchToProps(dispatch) {
     return {
-        createOrder: (orderInfo) => {
-            return dispatch(createOrder(orderInfo));
+        createOrder: (order) => {
+            return dispatch(createOrderAction(order));
         }
     }
 }
