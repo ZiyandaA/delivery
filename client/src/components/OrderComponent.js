@@ -5,7 +5,8 @@ import { Link } from 'react-router-dom';
 import {
     createOrderAction,
     getOrderAction,
-    deleteOrderAction
+    deleteOrderAction,
+    confirmOrderAction
 } from '../store/modules/orders';
 
 class OrderComponent extends Component {
@@ -26,8 +27,16 @@ class OrderComponent extends Component {
     }
 
     handleConfirmOrder = () => {
-        const email = prompt("Enter the email address the confirmation mail should be sent to", "test@mail.com");
-        console.log(email);
+        const {
+            match: { params }
+        } = this.props;
+        let email;
+
+        do {
+            email = prompt("Enter the email address the confirmation mail should be sent to", "test@mail.com");
+        } while (!email);
+
+        this.props.confirmOrder(email, params.orderId);
     };
 
     handleUpdateOrder = () => {
@@ -94,17 +103,7 @@ class OrderComponent extends Component {
     };
 
     render() {
-        const {isLoadingDetail, order } = this.props;
-        // console.log(isLoadingDetail, order);
-
-        return(
-            <div>
-                {
-                    this.renderBody()
-                }
-               {/*{this.displayOrderInfo()}*/}
-            </div>
-        )
+        return <div>{ this.renderBody() }</div>
     }
 }
 
@@ -121,7 +120,8 @@ function mapDispatchToProps(dispatch) {
         getOrder: (id) => {
             return dispatch(getOrderAction(id));
         },
-        deleteOrder: id => dispatch(deleteOrderAction(id))
+        deleteOrder: id => dispatch(deleteOrderAction(id)),
+        confirmOrder: (email, id) => dispatch(confirmOrderAction(email, id))
     }
 }
 

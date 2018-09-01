@@ -148,6 +148,13 @@ router.put('/:orderId/confirm', async (req, res, next) => {
             throw new Error(`An order with with orderId: ${orderId} does not exists`);
         }
 
+        if (order.confirmed) {
+            return res.status(409).send({
+                message: `Order already confirmed!`,
+                status: 'fail'
+            });
+        }
+
         const packages = {
             bins: ['One bin($30)', 'Two Bins($40)', 'Three Bins and over Truck jobs($130/hr)'],
             cases: ['One Case($35)', 'Two Cases($40)', 'Three Cases($50)'],
@@ -179,17 +186,29 @@ router.put('/:orderId/confirm', async (req, res, next) => {
             `,
         };
 
-        transporter.sendMail(mailOptions, (error, info) => {
+        transporter.sendMail(mailOptions, async (error, info) => {
             if (error) {
                 return res.status(500).send({
                     message: `Confirmation email could not be sent! order not confirmed`,
                     status: 'fail'
                 });
             } else {
-                res.status(200).send({
-                    status: 'success',
-                    message: 'Order confirmed successfully, email sent!'
-                });
+                try {
+                    const order = await models.Order.findByIdAndUpdate(orderId, {
+                        confirmed: true,
+                    }, { new: true });
+
+                    res.status(200).send({
+                        status: 'success',
+                        order,
+                        message: 'Order confirmed successfully, email sent!'
+                    });
+                } catch (e) {
+                    res.status(500).send({
+                        status: 'fail',
+                        message: 'Confirmation email sent but the order could not be updated',
+                    });
+                }
             }
         });
     } catch (e) {
