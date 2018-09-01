@@ -10,6 +10,46 @@ const googleMapsClient = require('@google/maps').createClient({
     Promise: Promise
 });
 
+router.get('/:orderId', async (req, res, next) => {
+    const { orderId } = req.params;
+
+    try {
+        const order = await models.Order.findById(orderId);
+
+        if (order === null) {
+            throw new Error(`An order with with orderId: ${orderId} does not exists`);
+        }
+
+        res.status(200).send({ order, status: 'success' })
+    } catch (e) {
+        return res.status(404).send({
+            status: 'fail',
+            message: `An order with with orderId: ${orderId} does not exists`
+        })
+    }
+});
+
+router.delete('/:orderId', async (req, res, next) => {
+    const { orderId } = req.params;
+    try {
+        const order = await models.Order.findByIdAndDelete(orderId);
+
+        if (order === null) {
+            throw new Error(`An order with with orderId: ${orderId} does not exists`);
+        }
+
+        res.status(200).send({
+            message: 'Order deleted successfully!',
+            status: 'success'
+        });
+    } catch (e) {
+        res.status(400).send({
+            message: `An order with with orderId: ${orderId} does not exists`,
+            status: 'fail'
+        });
+    }
+});
+
 router.post('/', async (req, res, next) => {
     const {
         service,
@@ -81,21 +121,31 @@ router.post('/', async (req, res, next) => {
     }
 });
 
+router.put('/:orderId/confirm', async (req, res, next) => {
+    const { orderId } = req.params;
 
-router.patch('/confirm', async (req, res, next) => {
     try {
-        const {orderID, userID} = req.body;
-        const order = await models.Order.findById(orderID);
-        if (!order) throw new Error();
-        order.set({payed: true});
-        order.save((err, updatedOrder) => {
-            if (err) throw new Error();
-            res.send(updatedOrder);
-        })
+        const order = await models.Order.findByIdAndUpdate(orderId, {
+            confirmed: true,
+            paid: true
+        }, { new: true });
+
+        if (order === null) {
+            throw new Error(`An order with with orderId: ${orderId} does not exists`);
+        }
+
+        res.status(200).send({
+            message: 'Order confirmed successfully!',
+            order
+        });
+    } catch (e) {
+        res.status(400).send({
+            message: `An order with with orderId: ${orderId} does not exists`,
+            status: 'fail'
+        });
     }
-    catch (err) {
-        next(Err);
-    }
-})
+
+
+});
 
 module.exports = router;

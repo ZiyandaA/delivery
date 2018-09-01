@@ -236,8 +236,13 @@ class FormComponent extends Component {
             additional,
             date_time,
         };
-        const order = await this.props.createOrder(formData);
-        this.props.history.push(`/orders/${order._id}`);
+        try {
+            const {order} = await this.props.createOrder(formData);
+            this.props.history.push(`/orders/${order._id}`);
+        } catch (e) {
+            console.log(e)
+        }
+
     }
 
     handleChange(event) {
