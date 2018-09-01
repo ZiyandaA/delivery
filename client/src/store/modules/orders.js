@@ -25,9 +25,7 @@ export const deleteOrderAction = (id) => {
         DELETE_ORDER,
         axios.delete(`http://localhost:3000/orders/${id}`),
         (res) => {
-            // console.log(res);
             alert(res.message);
-            // dispatch({ type: 'alerts/SHOW', payload: res.message })
         },
         err => alert(err.message)
     )

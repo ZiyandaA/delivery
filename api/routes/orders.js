@@ -1,4 +1,5 @@
 const express = require('express');
+const nodemailer = require('nodemailer');
 const router = express.Router();
 const convert = require('convert-units');
 
@@ -88,9 +89,7 @@ router.post('/', async (req, res, next) => {
             message: 'internal server error'
         })
     }
-    const price = basePrice + (distance * settings.pricePerMile);
-
-    console.log(price);
+    const price = (basePrice + (distance * settings.pricePerMile)).toFixed(2);
 
     try {
         const newOrder = await models.Order.create({
@@ -123,20 +122,75 @@ router.post('/', async (req, res, next) => {
 
 router.put('/:orderId/confirm', async (req, res, next) => {
     const { orderId } = req.params;
+    const { email } = req.body;
+    const { EMAIL_ADDR, EMAIL_PWD, EMAIL_FROM } = process.env;
+
+    // EMAIL TRANSPORT
+    let transporter = nodemailer.createTransport({
+        service: 'gmail',
+        auth: {
+            user: EMAIL_ADDR,
+            pass: EMAIL_PWD
+        }
+    });
+
+    if (!email) {
+        return res.status(403).send({
+            message: 'Recipient email is required',
+            status: 'fail'
+        })
+    }
 
     try {
-        const order = await models.Order.findByIdAndUpdate(orderId, {
-            confirmed: true,
-            paid: true
-        }, { new: true });
+        const order = await models.Order.findById(orderId);
 
         if (order === null) {
             throw new Error(`An order with with orderId: ${orderId} does not exists`);
         }
 
-        res.status(200).send({
-            message: 'Order confirmed successfully!',
-            order
+        const packages = {
+            bins: ['One bin($30)', 'Two Bins($40)', 'Three Bins and over Truck jobs($130/hr)'],
+            cases: ['One Case($35)', 'Two Cases($40)', 'Three Cases($50)'],
+            Vflats: ['VFlats, magliners, bead boards, flags($5)', 'Anything too long($5)'],
+            additional: ['Rush NYC($15)', 'Rush BK($25)', 'Super Rush NYC($30)', 'Super Rush BK($40)', 'No pick up fee($12)', 'Waiting time per hr($40)']
+        };
+
+        let mailOptions = {
+            from: `"${EMAIL_FROM}" <${EMAIL_ADDR}>`,
+            to: email,
+            subject: 'Order Confirmed',
+            text: `
+                Order Confirmed
+                
+                Dear ${order.customer_name},
+                Order reference number is: ${order._id}
+                Your order has been confirmed. Please find below the order summary.
+                
+                Price: $${order.price}
+                Your Address: ${order.customer_address}
+                Our Address: ${order.our_address}
+                Service: ${order.service}
+                    
+                Packages:
+                Bins: ${packages.bins[order.bins.type]} – ${order.bins.quantity}
+                Cases: ${packages.cases[order.cases.type]} – ${order.cases.quantity}
+                Vflats: ${packages.Vflats[order.Vflats.type]} – ${order.Vflats.quantity}
+                Aditional: ${packages.additional[order.additional.type]} – ${order.additional.quantity}
+            `,
+        };
+
+        transporter.sendMail(mailOptions, (error, info) => {
+            if (error) {
+                return res.status(500).send({
+                    message: `Confirmation email could not be sent! order not confirmed`,
+                    status: 'fail'
+                });
+            } else {
+                res.status(200).send({
+                    status: 'success',
+                    message: 'Order confirmed successfully, email sent!'
+                });
+            }
         });
     } catch (e) {
         res.status(400).send({
@@ -144,8 +198,6 @@ router.put('/:orderId/confirm', async (req, res, next) => {
             status: 'fail'
         });
     }
-
-
 });
 
 module.exports = router;

@@ -26,7 +26,8 @@ class OrderComponent extends Component {
     }
 
     handleConfirmOrder = () => {
-        console.log('confirm order');
+        const email = prompt("Enter the email address the confirmation mail should be sent to", "test@mail.com");
+        console.log(email);
     };
 
     handleUpdateOrder = () => {

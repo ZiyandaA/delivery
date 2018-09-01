@@ -25,10 +25,6 @@ const orderSchema = mongoose.Schema({
         type: Boolean,
         default: false
     },
-    paid: { //2
-        type: Boolean,
-        default: false
-    }
 });
 
 const Order = mongoose.model('Order', orderSchema);
