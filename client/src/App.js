@@ -13,7 +13,8 @@ import Header from './containers/Header';
 import Register from './containers/Register';
 import Home from './containers/Home';
 
-import OrderComponent from './components/OrderComponent'
+import OrderComponent from './components/OrderComponent';
+import OrdersComponent from './components/OrdersComponent';
 
 
 
@@ -40,9 +41,8 @@ class App extends Component {
     return (
       <div  style={{ maxWidth: 600, margin: '0 auto', padding: 15,}}>
         <Header />
-        <Route exact path="/orders" render={() => <h1>All Orders</h1>} />
+        <Route exact path="/orders" component={OrdersComponent} />
         <Route exact path="/orders/:orderId" component={OrderComponent} />
-        <Route path="/update-order" render={() => <h1>Update order</h1>} />
         <Route path="/register" component={Register} />
         <Route path="/login" component={Register} />
         <Route exact path="/" component={Home} />

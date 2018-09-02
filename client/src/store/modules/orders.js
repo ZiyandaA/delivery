@@ -7,6 +7,7 @@ const CREATE_ORDER = 'order/CREATE';
 const DELETE_ORDER = 'order/DELETE';
 const CONFIRM_ORDER = 'order/CONFIRM';
 const UPDATE_ORDER = 'order/UPDATE';
+const FETCH_ORDERS = 'orders/FETCH';
 
 export const createOrderAction = (order) => {
     return asyncAction(
@@ -22,7 +23,14 @@ export const getOrderAction = (id) => {
     )
 };
 
-export const updateOrderAction = (id, order) => console.log(order) || asyncAction(
+export const getOrdersAction = () => {
+    return asyncAction(
+        FETCH_ORDERS,
+        axios.get(`http://localhost:3000/orders`)
+    )
+};
+
+export const updateOrderAction = (id, order) => asyncAction(
     UPDATE_ORDER,
     axios.put(`http://localhost:3000/orders/${id}`, { order })
 );
@@ -52,6 +60,7 @@ export const confirmOrderAction = (email, id) => asyncAction(
 export function ordersReducer(state= {
     detail: {},
     list: [],
+    isLoadingList: false,
     isLoadingDetail: false,
     loadingDetailError: '',
 }, action) {
@@ -62,8 +71,17 @@ export function ordersReducer(state= {
         case `${DELETE_ORDER}_PENDING`:
         case `${UPDATE_ORDER}_PENDING`:
             return {...state, isLoadingDetail: true };
+        case `${FETCH_ORDERS}_PENDING`:
+            return {...state, isLoadingList: true };
+        case `${FETCH_ORDERS}_FULFILLED`:
+            return {
+                ...state,
+                isLoadingList: false,
+                list: action.payload.orders,
+            };
+        case `${FETCH_ORDERS}_REJECTED`:
+            return { ...state, isLoadingList: false };
         case `${FETCH_ORDER}_REJECTED`:
-            console.log(action);
             return {
                 ...state,
                 isLoadingDetail: false,
