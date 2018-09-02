@@ -21,6 +21,7 @@ const orderSchema = mongoose.Schema({
     date_time: Date,
     service: String,
     price: Number,
+    distance: Number,
     confirmed: { //1,
         type: Boolean,
         default: false

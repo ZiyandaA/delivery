@@ -212,55 +212,65 @@ class FormComponent extends Component {
 
     componentDidMount () {
         const {mode, orderId, order, getOrder } = this.props;
-        if (mode === 'edit' && order._id !== orderId) {
-            getOrder(orderId);
+       // console.log(order._id, orderId);
+        if (mode === 'edit') {
+
+            if(order._id !== orderId) {
+                getOrder(orderId);
+            } else {
+                this.addOrderInfoToState();
+            }
+           
         }
     }
 
     componentDidUpdate(prevProps) {
         if (Object.keys(this.props.order).length !== 0) {
             if (JSON.stringify(prevProps.order) !== JSON.stringify(this.props.order)) {
-                const {
-                    customer_name,
-                    service,
-                    notes,
-                    customer_address,
-                    our_address,
-                    bins,
-                    cases,
-                    Vflats,
-                    additional,
-                    date_time
-                } = this.props.order;
-
-                const data = {
-                    customer_name,
-                    service,
-                    notes,
-                    customer_address,
-                    our_address,
-                    date_time: moment(date_time).format('YYYY-MM-DD'),
-                    bins: {
-                        type: `${bins.type}`,
-                        quantity: bins.quantity
-                    },
-                    cases: {
-                        type: `${cases.type}`,
-                        quantity: cases.quantity
-                    },
-                    Vflats: {
-                        type: `${Vflats.type}`,
-                        quantity: Vflats.quantity
-                    },
-                    additional: {
-                        type: `${additional.type}`,
-                        quantity: additional.quantity
-                    }
-                };
-                this.setState({...data})
+                this.addOrderInfoToState();
             }
         }
+    }
 
+    addOrderInfoToState = () => {
+        const {
+            customer_name,
+            service,
+            notes,
+            customer_address,
+            our_address,
+            bins,
+            cases,
+            Vflats,
+            additional,
+            date_time
+        } = this.props.order;
+
+        const data = {
+            customer_name,
+            service,
+            notes,
+            customer_address,
+            our_address,
+            date_time: moment(date_time).format('YYYY-MM-DD'),
+            bins: {
+                type: `${bins.type}`,
+                quantity: bins.quantity
+            },
+            cases: {
+                type: `${cases.type}`,
+                quantity: cases.quantity
+            },
+            Vflats: {
+                type: `${Vflats.type}`,
+                quantity: Vflats.quantity
+            },
+            additional: {
+                type: `${additional.type}`,
+                quantity: additional.quantity
+            }
+        };
+        this.setState({...data})
     }
 
     // component

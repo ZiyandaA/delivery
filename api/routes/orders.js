@@ -94,7 +94,8 @@ router.put('/:orderId', async (req, res) => {
     try {
         const order = await models.Order.findByIdAndUpdate(orderId, {
             ...req.body.order,
-            price
+            price,
+            distance: distance.toFixed(2)
         }, { new: true });
 
         if (order === null) {
@@ -165,6 +166,7 @@ router.post('/', async (req, res, next) => {
             customer_address,
             our_address,
             notes,
+            distance: distance.toFixed(2),
             date_time,
             bins,
             cases,
@@ -233,12 +235,12 @@ router.put('/:orderId/confirm', async (req, res, next) => {
             throw new Error(`An order with with orderId: ${orderId} does not exists`);
         }
 
-        if (order.confirmed) {
-            return res.status(409).send({
-                message: `Order already confirmed!`,
-                status: 'fail'
-            });
-        }
+        // if (order.confirmed) {
+        //     return res.status(409).send({
+        //         message: `Order already confirmed!`,
+        //         status: 'fail'
+        //     });
+        // }
 
         const packages = {
             bins: ['One bin($30)', 'Two Bins($40)', 'Three Bins and over Truck jobs($130/hr)'],
@@ -246,6 +248,26 @@ router.put('/:orderId/confirm', async (req, res, next) => {
             Vflats: ['VFlats, magliners, bead boards, flags($5)', 'Anything too long($5)'],
             additional: ['Rush NYC($15)', 'Rush BK($25)', 'Super Rush NYC($30)', 'Super Rush BK($40)', 'No pick up fee($12)', 'Waiting time per hr($40)']
         };
+
+        const { pricing } = settings;
+
+        const pBins = pricing.bins[Number(order.bins.type)] * order.bins.quantity;
+        const pCases = pricing.cases[Number(order.cases.type)] * order.cases.quantity;
+        const pVflats = pricing.Vflats[Number(order.Vflats.type)] * order.Vflats.quantity;
+        const pAdditional = pricing.additional_fees[Number(order.additional.type)] * order.additional.quantity;
+
+        let orderSummary;
+        let myObj = [
+            { label: 'bins', price: pBins },
+            { label: 'cases', price: pCases },
+            { label: 'Vflats', price: pVflats },
+            { label: 'additional', price: pAdditional },
+        ].filter((item) => item.price != 0)
+
+        orderSummary = myObj.map(({ label, price}) => {
+            return `${label}: ${packages[label][order[label].type]} – QTY: ${order[label].quantity} – PRICE: $${price}`
+        }).join('\t\n')
+        
 
         let mailOptions = {
             from: `"${EMAIL_FROM}" <${EMAIL_ADDR}>`,
@@ -264,13 +286,17 @@ router.put('/:orderId/confirm', async (req, res, next) => {
                 Service: ${order.service}
                     
                 Packages:
-                Bins: ${packages.bins[order.bins.type]} – ${order.bins.quantity}
-                Cases: ${packages.cases[order.cases.type]} – ${order.cases.quantity}
-                Vflats: ${packages.Vflats[order.Vflats.type]} – ${order.Vflats.quantity}
-                Aditional: ${packages.additional[order.additional.type]} – ${order.additional.quantity}
+                ${orderSummary}
+                mileage cost: ${(order.distance * settings.pricePerMile).toFixed(2)}
             `,
         };
 
+        // Bins: ${packages.bins[order.bins.type]} – QTY: ${order.bins.quantity} – PRICE: $${pBins}
+        // Cases: ${packages.cases[order.cases.type]} – QTY: ${order.cases.quantity} - PRICE: $${pCases}
+        // Vflats: ${packages.Vflats[order.Vflats.type]} – QTY: ${order.Vflats.quantity} – PRICE: $${pVflats}
+        // Aditional: ${packages.additional[order.additional.type]} – QTY: ${order.additional.quantity} – PRICE: $${pAdditional}
+        
+        
         transporter.sendMail(mailOptions, async (error, info) => {
             if (error) {
                 return res.status(500).send({
@@ -297,6 +323,7 @@ router.put('/:orderId/confirm', async (req, res, next) => {
             }
         });
     } catch (e) {
+        console.log(e);
         res.status(400).send({
             message: `An order with with orderId: ${orderId} does not exists`,
             status: 'fail'

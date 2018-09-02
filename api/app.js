@@ -32,7 +32,8 @@ app.use(function(req, res, next) {
 app.use(session({
   secret: "some secretr key",
   saveUninitialized: true,
-  resave: false
+  resave: false,
+  maxAge: .25 * 60 * 1000
 }));
 
 app.use(logger('dev'));
