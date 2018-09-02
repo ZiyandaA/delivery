@@ -3,7 +3,6 @@ import {connect} from 'react-redux';
 import { Link } from 'react-router-dom';
 
 import {
-    createOrderAction,
     getOrderAction,
     deleteOrderAction,
     confirmOrderAction
@@ -28,7 +27,7 @@ class OrderComponent extends Component {
 
     handleConfirmOrder = () => {
         const {
-            match: { params }
+            match: { params },
         } = this.props;
         let email;
 
@@ -40,15 +39,19 @@ class OrderComponent extends Component {
     };
 
     handleUpdateOrder = () => {
-        console.log('update order');
-    };
-
-    handleDeleteOrder = () => {
         const {
+            history: { push },
             match: { params }
         } = this.props;
+        push(`/?mode=edit&orderId=${params.orderId}`);
+    };
+
+    handleDeleteOrder = async () => {
+        const {
+            match: { params },
+        } = this.props;
         if (window.confirm('Are you sure you want to delete this order?')) {
-            this.props.deleteOrder(params.orderId)
+            await this.props.deleteOrder(params.orderId);
         }
     };
 

@@ -54,7 +54,7 @@ router.delete('/:orderId', async (req, res, next) => {
 router.post('/', async (req, res, next) => {
     const {
         service,
-        name: customer_name,
+        customer_name,
         notes,
         customer_address,
         our_address,

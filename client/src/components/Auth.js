@@ -6,9 +6,9 @@ class Auth extends Component {
 
     render() {
         let {password, name, handleChange, handleSubmit, successMessage, label, mode} = this.props;
-        
+
         const labelStyles = {
-            
+
             display: 'inline-block',
             color: 'white',
             marginRight: 5,
@@ -57,11 +57,11 @@ class Auth extends Component {
                         </div>
                         <input
                             style={inputStyles}
-                            value={name} 
-                            name="name" 
-                            onChange={handleChange} 
+                            value={name}
+                            name="name"
+                            onChange={handleChange}
                             type="text"
-                            placeHoler="name"
+                            placeholder="name"
                             required
                         />
                     </div>
@@ -74,9 +74,9 @@ class Auth extends Component {
                         </div>
                         <input
                             style={inputStyles}
-                            value={password} 
-                            name="password" 
-                            onChange={handleChange} 
+                            value={password}
+                            name="password"
+                            onChange={handleChange}
                             type="password"
                             placeholder="password"
                             required
@@ -87,7 +87,7 @@ class Auth extends Component {
                     <button type="submit">
                         { mode === "register" ? "Register" : "Log In"}
                     </button>
-                    
+
                 </form>
                 {successMessage}
             </div>

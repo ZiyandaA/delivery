@@ -16,9 +16,7 @@ router.post('/', async (req, res, next) => {
     catch (err) {
         next(err);
     }
-    
-})
-
+});
 
 router.get('/', async (req, res, next) => {
     const roles = await models.Role.find();

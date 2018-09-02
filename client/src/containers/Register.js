@@ -1,9 +1,5 @@
 import React, { Component } from 'react';
 import { Redirect } from 'react-router-dom';
-import Select from '@material-ui/core/Select';
-import InputLabel from '@material-ui/core/InputLabel';
-import MenuItem from '@material-ui/core/MenuItem';
-import FormControl from '@material-ui/core/FormControl';
 import { withRouter } from 'react-router-dom';
 import {connect} from 'react-redux';
 import { loginAction } from '../store/modules/auth'
@@ -78,7 +74,9 @@ class Register extends Component {
         }
 
         if(this.props.loggedIn) {
-            return <Redirect to="/" />
+            const { referrer } =this.props.location.state;
+            const from = referrer ? referrer : '/';
+            return <Redirect to={from} />
         }
 
         return(

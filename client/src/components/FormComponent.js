@@ -2,11 +2,9 @@ import React, { Component } from 'react';
 import {connect} from 'react-redux';
 import { withRouter } from 'react-router-dom';
 
-import {createOrderAction} from '../store/modules/orders';
+import {createOrderAction, getOrderAction} from '../store/modules/orders';
 
 import moment from 'moment'
-
-
 
 const mainBGColor = '#024fa2';
 
@@ -44,7 +42,7 @@ const StoreLocation = ({background, name, address, onSelect, selected}) => {
     </div>
 }
 
-const FormItem = ({name, onChangeOption, onChange, label, index, options =[], formData}) => {
+const FormItem = ({name, onChangeOption, onChange, label, index, options =[], formData }) => {
     //console.log(formData[name], `formData.${name}`)
     const { quantity, type } = formData[name];
     // console.log(quantity);
@@ -65,11 +63,12 @@ const FormItem = ({name, onChangeOption, onChange, label, index, options =[], fo
                 marginRight: 8,
                 maxWidth: 138,
             }}
+            value={type}
             name={name}
             onChange={onChangeOption}
         >
             {/* <option disabled selected value="default">Select a {label}</option> */}
-            {options.map(({label, value}, i) => <option value={value} selected={value === type}>{label}</option>)}
+            {options.map(({label, value}, i) => <option value={value} key={i}>{label}</option>)}
 
         </select>
         <input
@@ -81,7 +80,8 @@ const FormItem = ({name, onChangeOption, onChange, label, index, options =[], fo
             }}
             name={name}
             onChange={onChange}
-            defaultValue={quantity}
+            value={quantity}
+            // defaultValue={quantity}
         />
     </div>)
 }
@@ -167,11 +167,11 @@ const formItemProps = [
             },
         ]
     },
-]
+];
 
 class FormComponent extends Component {
     formData = {
-        service: "delivery",
+        service: "pick-up",
         customer_name: "John Smith ",
         notes: "",
         customer_address: "370 19th Street Brookly NY 11215",
@@ -192,7 +192,7 @@ class FormComponent extends Component {
             type: "3",
             quantity: 0
         },
-        date_time: "08/31/2018"
+        date_time: "2018-08-31"
     };
 
     constructor(props) {
@@ -207,11 +207,64 @@ class FormComponent extends Component {
         this.submit = this.submit.bind(this);
     }
 
+    componentDidMount () {
+        const {mode, orderId, order, getOrder } = this.props;
+        if (mode === 'edit' && order._id !== orderId) {
+            getOrder(orderId);
+        }
+    }
 
+    componentDidUpdate(prevProps) {
+        if (Object.keys(this.props.order).length !== 0) {
+            if (JSON.stringify(prevProps.order) !== JSON.stringify(this.props.order)) {
+                const {
+                    customer_name,
+                    service,
+                    notes,
+                    customer_address,
+                    our_address,
+                    bins,
+                    cases,
+                    Vflats,
+                    additional,
+                    date_time
+                } = this.props.order;
+
+                const data = {
+                    customer_name,
+                    service,
+                    notes,
+                    customer_address,
+                    our_address,
+                    date_time: moment(date_time).format('YYYY-MM-DD'),
+                    bins: {
+                        type: `${bins.type}`,
+                        quantity: bins.quantity
+                    },
+                    cases: {
+                        type: `${cases.type}`,
+                        quantity: cases.quantity
+                    },
+                    Vflats: {
+                        type: `${Vflats.type}`,
+                        quantity: Vflats.quantity
+                    },
+                    additional: {
+                        type: `${additional.type}`,
+                        quantity: additional.quantity
+                    }
+                };
+                this.setState({...data})
+            }
+        }
+
+    }
+
+    // component
     async submit(ev) {
         const {
             service,
-            name,
+            customer_name,
             notes,
             customer_address,
             our_address,
@@ -226,7 +279,7 @@ class FormComponent extends Component {
 
         const formData = {
             service,
-            name,
+            customer_name,
             notes,
             customer_address,
             our_address,
@@ -237,8 +290,13 @@ class FormComponent extends Component {
             date_time,
         };
         try {
-            const {order} = await this.props.createOrder(formData);
-            this.props.history.push(`/orders/${order._id}`);
+            const { mode }  = this.props;
+            if (mode === 'edit') {
+                console.log('edit mode submit');
+            } else {
+                const {order} = await this.props.createOrder(formData);
+                this.props.history.push(`/orders/${order._id}`);
+            }
         } catch (e) {
             console.log(e)
         }
@@ -258,9 +316,12 @@ class FormComponent extends Component {
     }
 
     handleChangeQuantity(e) {
-        const quantity = parseInt(e.target.value, 10) ? parseInt(e.target.value, 10) : 0;
+        // const quantity = parseInt(e.target.value, 10) ? parseInt(e.target.value, 10) : 0;
         this.setState({
-            [e.target.name]: {...this.state[e.target.name], quantity }
+            [e.target.name]: {
+                ...this.state[e.target.name],
+                quantity: e.target.value
+            }
         })
     }
 
@@ -272,12 +333,18 @@ class FormComponent extends Component {
 
     render() {
         const {
-            customer_name, notes, cases, Vflats, bins, date_time, service,
+            customer_name, notes, date_time, service,
             our_address,
             customer_address
         } = this.state;
 
         const minDateStr = moment().format('YYYY-MM-DD');
+        const { mode, order }  = this.props;
+
+        if (mode=== 'edit' && Object.keys(order).length === 0) {
+            return <p>Loading...</p>
+        }
+
         return(
                 <form
                     onSubmit={this.submit}
@@ -307,11 +374,12 @@ class FormComponent extends Component {
                                 display: 'inline-block',
                             }}
                             name={'service'}
+                            value={service}
                             onChange={this.handleChange}
                             required
                         >
-                            <option value="delivery" selected={service === "delivery"}>Delivery</option>
-                            <option value="pick-up" selected={service === "pick-up"}>Pick Up</option>
+                            <option value="delivery">Delivery</option>
+                            <option value="pick-up">Pick Up</option>
                         </select>
                         </div>
                         <div
@@ -328,8 +396,7 @@ class FormComponent extends Component {
                         <p>
                             <input
                                 type="text"
-                                defaultValue={customer_name}
-                                //value={name}
+                                value={customer_name}
                                 size='50'
                                 name='customer_name'
                                 onChange={this.handleChange}
@@ -379,8 +446,7 @@ class FormComponent extends Component {
                                     width: 300.
                                 }}
                                 type="text"
-                                defaultValue={customer_address}
-                                //value={customer_address}
+                                value={customer_address}
                                 name='customer_address'
                                 onChange={this.handleChange}
                                 required
@@ -434,7 +500,7 @@ class FormComponent extends Component {
                             onChangeOption={this.handleChangeOption}
                             options={options}
                             index={i}
-                            formData={this.formData}
+                            formData={this.state}
                         />
                     })}
 
@@ -442,8 +508,7 @@ class FormComponent extends Component {
                     <input
                         type="date"
                         name="date_time"
-                        //value={date_time}
-                        defaultValue={date_time}
+                        value={date_time}
                         onChange={this.handleChange}
                         min={minDateStr}
                         required
@@ -454,24 +519,25 @@ class FormComponent extends Component {
                         <textarea name="notes" value={notes} onChange={this.handleChange}  />
                     </div>
 
-                    <button type="submit" style={{fontSize: 20}}>Submit</button>
+                    <button type="submit" style={{fontSize: 20}}>
+                        {mode === 'edit' ? 'Update': 'Submit'}
+                    </button>
                 </form>
-
-
-
         )
     }
 }
 
-function mapStateToProps(state) {
-
-}
+function mapStateToProps({ orders }) {
+    return {
+        order: orders.detail,
+        isLoadingDetail: orders.isLoadingDetail
+    }
+};
 
 function mapDispatchToProps(dispatch) {
     return {
-        createOrder: (order) => {
-            return dispatch(createOrderAction(order));
-        }
+        createOrder: order => dispatch(createOrderAction(order)),
+        getOrder: id => dispatch(getOrderAction(id))
     }
 }
 

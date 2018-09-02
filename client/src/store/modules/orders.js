@@ -65,6 +65,12 @@ export function ordersReducer(state= {
         case `${CONFIRM_ORDER}_REJECTED`:
         case `${CREATE_ORDER}_REJECTED`:
             return {...state, isLoadingDetail: false };
+        case `${DELETE_ORDER}_FULFILLED`:
+            return {
+                ...state,
+                detail: {},
+                isLoadingDetail: false
+            };
         case `${CONFIRM_ORDER}_FULFILLED`:
         case `${CREATE_ORDER}_FULFILLED`:
         case `${FETCH_ORDER}_FULFILLED`:

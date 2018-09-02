@@ -30,11 +30,10 @@ class App extends Component {
       b) ComponentDidMount
   */
   componentDidMount() {
-    console.log(this.props);
     axios.get('/check')
-    .then(data => {
-      store.dispatch(loginAction());
-    })
+        .then(data => {
+          store.dispatch(loginAction());
+        })
   }
 
   render() {
