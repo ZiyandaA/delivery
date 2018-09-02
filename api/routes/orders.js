@@ -51,6 +51,69 @@ router.delete('/:orderId', async (req, res, next) => {
     }
 });
 
+router.put('/:orderId', async (req, res) => {
+    const { orderId } = req.params;
+    const {
+        customer_address,
+        our_address,
+        bins,
+        cases,
+        Vflats,
+        additional,
+    } = req.body.order;
+    const { pricing } = settings;
+
+    const pBins = pricing.bins[Number(bins.type)] * bins.quantity;
+    const pCases = pricing.cases[Number(cases.type)] * cases.quantity;
+    const pVflats = pricing.Vflats[Number(Vflats.type)] * Vflats.quantity;
+    const pAdditional = pricing.additional_fees[Number(additional.type)] * additional.quantity;
+
+    const basePrice = pBins + pCases + pVflats + pAdditional;
+
+    let distance;
+
+    try {
+        const distances = await googleMapsClient.distanceMatrix({
+            origins: [our_address],
+            destinations: [customer_address],
+            units: 'imperial',
+        }).asPromise();
+        distance = convert(distances.json.rows[0].elements[0].distance.value)
+            .from('m').to('mi');
+    } catch (e) {
+        return res.status(500).send({
+            status: 'fail',
+            message: 'internal server error'
+        })
+    }
+    const price = (basePrice + (distance * settings.pricePerMile)).toFixed(2);
+
+    try {
+        const order = await models.Order.findByIdAndUpdate(orderId, {
+            ...req.body.order,
+            price
+        }, { new: true });
+
+        if (order === null) {
+            res.status(400).send({
+                status: 'fail',
+                message: `An order with with orderId: ${orderId} does not exists`
+            });
+        }
+
+        res.status(200).send({
+            status: 'success',
+            order,
+            message: 'Order updated successfully!'
+        });
+    } catch (e) {
+        res.status(500).send({
+            status: 'fail',
+            message: 'Order could not be updated!',
+        });
+    }
+});
+
 router.post('/', async (req, res, next) => {
     const {
         service,

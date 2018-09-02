@@ -2,7 +2,11 @@ import React, { Component } from 'react';
 import {connect} from 'react-redux';
 import { withRouter } from 'react-router-dom';
 
-import {createOrderAction, getOrderAction} from '../store/modules/orders';
+import {
+    updateOrderAction,
+    createOrderAction,
+    getOrderAction
+} from '../store/modules/orders';
 
 import moment from 'moment'
 
@@ -12,7 +16,6 @@ const StoreLocation = ({background, name, address, onSelect, selected}) => {
     return <div
         onClick={() => onSelect(address)}
         style={{
-
             display: 'inline-block',
             width: 200,
             marginRight: 10,
@@ -275,6 +278,7 @@ class FormComponent extends Component {
             date_time,
         } = this.state;
 
+
         ev.preventDefault();
 
         const formData = {
@@ -290,13 +294,15 @@ class FormComponent extends Component {
             date_time,
         };
         try {
-            const { mode }  = this.props;
+            const {mode, orderId } = this.props;
+            let res;
+
             if (mode === 'edit') {
-                console.log('edit mode submit');
+                res = await this.props.updateOrder(orderId, formData);
             } else {
-                const {order} = await this.props.createOrder(formData);
-                this.props.history.push(`/orders/${order._id}`);
+                res = await this.props.createOrder(formData);
             }
+            this.props.history.push(`/orders/${res.order._id}`);
         } catch (e) {
             console.log(e)
         }
@@ -329,7 +335,7 @@ class FormComponent extends Component {
         this.setState({
             our_address: address,
         })
-    }
+    };
 
     render() {
         const {
@@ -339,7 +345,7 @@ class FormComponent extends Component {
         } = this.state;
 
         const minDateStr = moment().format('YYYY-MM-DD');
-        const { mode, order }  = this.props;
+        const { mode, order, isLoadingDetail }  = this.props;
 
         if (mode=== 'edit' && Object.keys(order).length === 0) {
             return <p>Loading...</p>
@@ -519,9 +525,17 @@ class FormComponent extends Component {
                         <textarea name="notes" value={notes} onChange={this.handleChange}  />
                     </div>
 
-                    <button type="submit" style={{fontSize: 20}}>
-                        {mode === 'edit' ? 'Update': 'Submit'}
-                    </button>
+                    <div style={{
+                        display: 'flex',
+                        alignItems: 'center'
+                    }}>
+                        <button type="submit" style={{fontSize: 20}}>
+                            {mode === 'edit' ? 'Update': 'Submit'}
+                        </button>
+                        {
+                            isLoadingDetail && <p>Loading...</p>
+                        }
+                    </div>
                 </form>
         )
     }
@@ -537,7 +551,8 @@ function mapStateToProps({ orders }) {
 function mapDispatchToProps(dispatch) {
     return {
         createOrder: order => dispatch(createOrderAction(order)),
-        getOrder: id => dispatch(getOrderAction(id))
+        getOrder: id => dispatch(getOrderAction(id)),
+        updateOrder: (id, order) => dispatch(updateOrderAction(id, order))
     }
 }
 
