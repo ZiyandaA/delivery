@@ -11,6 +11,7 @@ const googleMapsClient = require('@google/maps').createClient({
     Promise: Promise
 });
 
+// GET an order
 router.get('/:orderId', async (req, res, next) => {
     const { orderId } = req.params;
 
@@ -30,6 +31,7 @@ router.get('/:orderId', async (req, res, next) => {
     }
 });
 
+// DELETE an order
 router.delete('/:orderId', async (req, res, next) => {
     const { orderId } = req.params;
     try {
@@ -51,6 +53,7 @@ router.delete('/:orderId', async (req, res, next) => {
     }
 });
 
+// UPDATE an order
 router.put('/:orderId', async (req, res) => {
     const { orderId } = req.params;
     const {
@@ -114,6 +117,7 @@ router.put('/:orderId', async (req, res) => {
     }
 });
 
+// CREATE an order
 router.post('/', async (req, res, next) => {
     const {
         service,
@@ -183,6 +187,24 @@ router.post('/', async (req, res, next) => {
     }
 });
 
+// GET all orders
+router.get('/', async (req, res) => {
+    try {
+        const orders = await models.Order.find();
+        res.status(200).send({
+            status: 'success',
+            orders
+        })
+    } catch (e) {
+        res.status(500).send({
+            status: 'fail',
+            message: 'Could not get all orders'
+        })
+    }
+
+});
+
+// CONFIRM an order
 router.put('/:orderId/confirm', async (req, res, next) => {
     const { orderId } = req.params;
     const { email } = req.body;
